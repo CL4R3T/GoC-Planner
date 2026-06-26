@@ -30,9 +30,5 @@ Thumbs.db
 .env
 .env.local
 
-# Flask / Web GUI (future)
-templates/
-app.py
-
 # Claude
 .claude/

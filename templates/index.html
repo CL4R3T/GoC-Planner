@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event Optimizer</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --border: #2a2d3a;
+    --text: #c9d1d9;
+    --muted: #6e7681;
+    --accent: #58a6ff;
+    --accent2: #3fb950;
+    --accent3: #f0883e;
+    --danger: #f85149;
+    --radius: 10px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card);
+  }
+  header h1 { font-size: 1.25rem; font-weight: 600; }
+  header .badge { font-size: 0.7rem; background: var(--accent); color: #000; padding: 2px 8px; border-radius: 12px; font-weight: 600; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 20px;
+    padding: 20px 24px;
+    height: calc(100vh - 60px);
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; height: auto; }
+  }
+
+  /* ── Config Panel ── */
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex; flex-direction: column; gap: 16px;
+    overflow-y: auto;
+  }
+  .panel h2 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: -4px; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-size: 0.8rem; color: var(--muted); }
+  select, input {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  select:focus, input:focus { border-color: var(--accent); }
+  .formula-list { font-size: 0.75rem; color: var(--muted); line-height: 1.6; }
+  .formula-list .active { color: var(--accent2); font-weight: 500; }
+  .range-info { font-size: 0.75rem; color: var(--muted); display: flex; justify-content: space-between; }
+
+  button {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.15s;
+    margin-top: auto;
+  }
+  button:hover { filter: brightness(1.15); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── Charts Area ── */
+  .main {
+    display: flex; flex-direction: column; gap: 16px;
+    overflow-y: auto;
+  }
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 700px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .stat-card .val { font-size: 1.5rem; font-weight: 700; color: var(--accent2); }
+  .stat-card .lbl { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+  .chart-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    position: relative;
+  }
+  .chart-box h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 8px; }
+  .chart-wrap { position: relative; width: 100%; }
+  .chart-wrap canvas { width: 100% !important; }
+
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 200px; color: var(--muted); gap: 8px;
+  }
+  .empty-state .icon { font-size: 2rem; opacity: 0.5; }
+</style>
+</head>
+<body>
+
+<header>
+  <span style="font-size:1.4rem;">🎲</span>
+  <h1>Event Optimizer</h1>
+  <span class="badge">WEB GUI</span>
+</header>
+
+<div class="layout">
+  <!-- ── Config Panel ── -->
+  <aside class="panel">
+    <h2>⚙️ Configuration</h2>
+
+    <div class="field">
+      <label for="gen-select">Generator</label>
+      <select id="gen-select"></select>
+    </div>
+
+    <div class="field">
+      <label for="formula-range">Unlocked Formulas (<span id="fc-label">1</span>)</label>
+      <input type="range" id="formula-range" min="1" value="1" step="1">
+      <div class="formula-list" id="formula-names"></div>
+    </div>
+
+    <div class="field">
+      <label for="event-select">Target Event</label>
+      <select id="event-select"></select>
+    </div>
+
+    <div class="field">
+      <label for="n-max">n Upper Bound</label>
+      <input type="number" id="n-max" value="50" min="1" max="500">
+    </div>
+
+    <button id="btn-optimize">🚀 Optimize</button>
+  </aside>
+
+  <!-- ── Charts Area ── -->
+  <main class="main">
+    <div class="stats-row">
+      <div class="stat-card"><div class="val" id="st-best-n">—</div><div class="lbl">Best n</div></div>
+      <div class="stat-card"><div class="val" id="st-prob">—</div><div class="lbl">Probability</div></div>
+      <div class="stat-card"><div class="val" id="st-exp">—</div><div class="lbl">E[attempts]</div></div>
+      <div class="stat-card"><div class="val" id="st-pity">—</div><div class="lbl">Pity 99</div></div>
+    </div>
+
+    <div class="chart-box">
+      <h3>📈 Probability Curve — <span id="curve-title">P(target) vs n</span></h3>
+      <div class="chart-wrap"><canvas id="chart-curve"></canvas></div>
+    </div>
+
+    <div class="chart-box">
+      <h3>📊 Event Distribution — <span id="dist-title">at best n</span></h3>
+      <div class="chart-wrap"><canvas id="chart-dist"></canvas></div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ── globals ──
+let config = null;
+let curveChart = null;
+let distChart = null;
+let currentCurveData = null;
+let currentGenIdx = null;
+let currentFCount = null;
+
+// ── init ──
+(async function init() {
+  const res = await fetch('/api/config');
+  config = await res.json();
+  renderConfig(config);
+  // draw empty charts
+  drawEmptyCurve();
+  drawEmptyDist();
+})();
+
+function renderConfig(cfg) {
+  // generators
+  const gs = document.getElementById('gen-select');
+  gs.innerHTML = cfg.generators.map(g =>
+    `<option value="${g.index}">${g.name} (k=${g.k})</option>`
+  ).join('');
+  gs.onchange = onGenChange;
+  onGenChange();
+
+  // events
+  const es = document.getElementById('event-select');
+  es.innerHTML = cfg.events.map(e =>
+    `<option value="${e.index + 1}">${e.name} (${e.probability})</option>`
+  ).join('');
+
+  // n max
+  document.getElementById('n-max').value = 50;
+
+  // button
+  document.getElementById('btn-optimize').onclick = onOptimize;
+}
+
+function onGenChange() {
+  const idx = parseInt(document.getElementById('gen-select').value);
+  const gen = config.generators.find(g => g.index === idx);
+  if (!gen) return;
+  const maxF = gen.formulas.length;
+
+  const range = document.getElementById('formula-range');
+  range.max = maxF;
+  range.value = Math.min(range.value, maxF);
+  document.getElementById('fc-label').textContent = range.value;
+
+  // show formula names
+  const list = document.getElementById('formula-names');
+  const fc = parseInt(range.value);
+  list.innerHTML = gen.formulas.map((f, i) => {
+    const cls = i < fc ? 'active' : '';
+    return `<span class="${cls}">${i < fc ? '✅' : '🔒'} ${f.name}</span><br>`;
+  }).join('');
+
+  range.oninput = () => {
+    const v = parseInt(range.value);
+    document.getElementById('fc-label').textContent = v;
+    // re-render formula list
+    list.innerHTML = gen.formulas.map((f, i) => {
+      const cls2 = i < v ? 'active' : '';
+      return `<span class="${cls2}">${i < v ? '✅' : '🔒'} ${f.name}</span><br>`;
+    }).join('');
+  };
+}
+
+// ── optimize ──
+async function onOptimize() {
+  const btn = document.getElementById('btn-optimize');
+  btn.disabled = true;
+  btn.textContent = '⏳ Computing...';
+
+  const genIdx = parseInt(document.getElementById('gen-select').value);
+  const fCount = parseInt(document.getElementById('formula-range').value);
+  const target = parseInt(document.getElementById('event-select').value);
+  const nMax = parseInt(document.getElementById('n-max').value);
+
+  currentGenIdx = genIdx;
+  currentFCount = fCount;
+
+  try {
+    const res = await fetch('/api/optimize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        generator_idx: genIdx,
+        formula_count: fCount,
+        target_event: target,
+        n_max: nMax,
+      }),
+    });
+    const data = await res.json();
+    currentCurveData = data;
+    updateStats(data);
+    drawCurve(data);
+    drawDist(data.distribution);
+    document.getElementById('curve-title').textContent = `P(${data.target_name}) vs n`;
+    document.getElementById('dist-title').textContent = `at n = ${data.best_n} (best)`;
+  } catch (err) {
+    console.error(err);
+    alert('Optimization failed. Check console.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🚀 Optimize';
+  }
+}
+
+function updateStats(d) {
+  document.getElementById('st-best-n').textContent = d.best_n;
+  document.getElementById('st-prob').textContent = (d.best_prob * 100).toFixed(4) + '%';
+  document.getElementById('st-exp').textContent = d.best_expected != null ? d.best_expected.toLocaleString() : '∞';
+  document.getElementById('st-pity').textContent = d.best_pity99 != null ? d.best_pity99.toLocaleString() : '∞';
+}
+
+// ── charts ──
+function drawEmptyCurve() {
+  const ctx = document.getElementById('chart-curve').getContext('2d');
+  if (curveChart) curveChart.destroy();
+  curveChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels: [], datasets: [] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+    },
+  });
+}
+
+function drawEmptyDist() {
+  const ctx = document.getElementById('chart-dist').getContext('2d');
+  if (distChart) distChart.destroy();
+  distChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: [], datasets: [] },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+    },
+  });
+}
+
+function drawCurve(data) {
+  const ctx = document.getElementById('chart-curve').getContext('2d');
+  if (curveChart) curveChart.destroy();
+
+  const labels = data.curve.map(p => p.n);
+  const probs = data.curve.map(p => p.prob * 100); // as %
+
+  // build point background colors
+  const ptColors = data.curve.map(p => p.is_best ? '#f0883e' : '#58a6ff');
+  const ptRadii = data.curve.map(p => p.is_best ? 7 : 3);
+
+  curveChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: probs,
+        borderColor: '#58a6ff',
+        borderWidth: 2,
+        pointBackgroundColor: ptColors,
+        pointRadius: ptRadii,
+        pointHoverRadius: 8,
+        tension: 0.15,
+        fill: false,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (ctx) => `n = ${data.curve[ctx[0].dataIndex].n}`,
+            label: (ctx) => {
+              const pt = data.curve[ctx.dataIndex];
+              let lines = [`P: ${(pt.prob * 100).toFixed(4)}%`];
+              if (pt.expected) lines.push(`E[attempts]: ${pt.expected.toLocaleString()}`);
+              if (pt.pity99) lines.push(`Pity99: ${pt.pity99.toLocaleString()}`);
+              if (pt.is_best) lines.push('⭐ Best n');
+              return lines;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'n', color: '#6e7681' },
+          ticks: { color: '#6e7681' },
+          grid: { color: '#1f2230' },
+        },
+        y: {
+          title: { display: true, text: 'Probability (%)', color: '#6e7681' },
+          ticks: { color: '#6e7681', callback: v => v.toFixed(2) + '%' },
+          grid: { color: '#1f2230' },
+        },
+      },
+      onClick: (_event, elements) => {
+        if (elements.length > 0) {
+          const idx = elements[0].index;
+          const pt = data.curve[idx];
+          onCurveClick(pt.n);
+        }
+      },
+    },
+  });
+}
+
+async function onCurveClick(n) {
+  if (currentGenIdx == null) return;
+  document.getElementById('dist-title').textContent = `at n = ${n}`;
+  try {
+    const res = await fetch('/api/distribution', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        generator_idx: currentGenIdx,
+        formula_count: currentFCount,
+        n,
+      }),
+    });
+    const d = await res.json();
+    drawDist(d.distribution);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function drawDist(distribution) {
+  const ctx = document.getElementById('chart-dist').getContext('2d');
+  if (distChart) distChart.destroy();
+
+  // truncate long names for display
+  const labels = distribution.map(d => {
+    const name = d.name.replace(/^\.\.\.\s*/, '');
+    return name.length > 40 ? name.slice(0, 38) + '…' : name;
+  });
+  const probs = distribution.map(d => d.prob * 100);
+  const colors = distribution.map(d => d.is_target ? '#f0883e' : '#30363d');
+  const borders = distribution.map(d => d.is_target ? '#f0883e' : '#58a6ff');
+
+  distChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: probs,
+        backgroundColor: colors,
+        borderColor: borders,
+        borderWidth: 1,
+      }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const d = distribution[ctx.dataIndex];
+              const pct = (d.prob * 100).toFixed(4);
+              let extra = d.is_target ? ' 🎯 Target' : '';
+              return `P: ${pct}%${extra}`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'Probability (%)', color: '#6e7681' },
+          ticks: { color: '#6e7681', callback: v => v.toFixed(2) + '%' },
+          grid: { color: '#1f2230' },
+        },
+        y: {
+          ticks: { color: '#6e7681', font: { size: 11 } },
+          grid: { color: '#1f2230' },
+        },
+      },
+    },
+  });
+}
+</script>
+</body>
+</html>
