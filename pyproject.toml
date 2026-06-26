@@ -1,0 +1,11 @@
+[project]
+name = "goc-planner"
+version = "0.1.0"
+description = "Event Optimizer — probability optimization tool for game event triggering"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.0",
+]
+
+[project.scripts]
+goc-planner = "main:main"
