@@ -6,7 +6,7 @@ import os
 
 from flask import Flask, jsonify, render_template, request
 
-from core.engine import find_best_n, prob_event, full_distribution
+from core.engine import find_best_n, full_distribution, prob_event
 from core.events import Events
 from generators import ALL as all_generators
 
@@ -14,6 +14,7 @@ app = Flask(__name__)
 
 
 # ── helpers (mirror main.py) ────────────────────────────────────────────────
+
 
 def _parse_prob(value) -> float:
     """Parse probability: float or '1/N' string."""
@@ -28,7 +29,7 @@ def _parse_prob(value) -> float:
 def _load_events() -> tuple[Events, list[str], list]:
     """Load event config from events.json."""
     path = os.path.join(os.path.dirname(__file__), "events.json")
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         data = json.load(f)
     names = [entry["name"] for entry in data]
     raw_probs = [entry["probability"] for entry in data]
@@ -59,6 +60,7 @@ def _pity99(p: float) -> int | float:
 
 # ── routes ───────────────────────────────────────────────────────────────────
 
+
 @app.route("/")
 def index():
     """Serve the single-page app."""
@@ -74,26 +76,32 @@ def api_config():
     for i, mod in enumerate(all_generators):
         name = mod.__name__.split(".")[-1]
         formulas = [{"index": j, "name": f.name} for j, f in enumerate(mod.FORMULAS)]
-        generators.append({
-            "index": i,
-            "name": name,
-            "k": mod.K,
-            "formulas": formulas,
-        })
+        generators.append(
+            {
+                "index": i,
+                "name": name,
+                "k": mod.K,
+                "formulas": formulas,
+            }
+        )
 
     event_list = []
     for i, (ename, raw) in enumerate(zip(event_names, raw_probs)):
-        event_list.append({
-            "index": i,
-            "name": ename,
-            "probability": _format_prob(raw),
-            "value": _parse_prob(raw),
-        })
+        event_list.append(
+            {
+                "index": i,
+                "name": ename,
+                "probability": _format_prob(raw),
+                "value": _parse_prob(raw),
+            }
+        )
 
-    return jsonify({
-        "generators": generators,
-        "events": event_list,
-    })
+    return jsonify(
+        {
+            "generators": generators,
+            "events": event_list,
+        }
+    )
 
 
 @app.route("/api/optimize", methods=["POST"])
@@ -124,37 +132,43 @@ def api_optimize():
         p = prob_event(n, k_gen, formulas, events, target_event)
         exp = _expected(p)
         pity = _pity99(p)
-        curve.append({
-            "n": n,
-            "prob": round(p, 8),
-            "expected": round(exp, 1) if exp != float("inf") else None,
-            "pity99": pity if pity != float("inf") else None,
-            "is_best": n == best_n,
-        })
+        curve.append(
+            {
+                "n": n,
+                "prob": round(p, 8),
+                "expected": round(exp, 1) if exp != float("inf") else None,
+                "pity99": pity if pity != float("inf") else None,
+                "is_best": n == best_n,
+            }
+        )
 
     # Full distribution at best_n
     dist_probs = full_distribution(best_n, k_gen, formulas, events)
     distribution = []
     for i, (ename, p) in enumerate(zip(event_names, dist_probs)):
-        distribution.append({
-            "index": i,
-            "name": ename,
-            "prob": round(p, 8),
-            "is_target": (i + 1) == target_event,
-        })
+        distribution.append(
+            {
+                "index": i,
+                "name": ename,
+                "prob": round(p, 8),
+                "is_target": (i + 1) == target_event,
+            }
+        )
 
     best_exp = _expected(best_prob)
     best_pity = _pity99(best_prob)
 
-    return jsonify({
-        "best_n": best_n,
-        "best_prob": round(best_prob, 8),
-        "best_expected": round(best_exp, 1) if best_exp != float("inf") else None,
-        "best_pity99": best_pity if best_pity != float("inf") else None,
-        "target_name": event_names[target_event - 1],
-        "curve": curve,
-        "distribution": distribution,
-    })
+    return jsonify(
+        {
+            "best_n": best_n,
+            "best_prob": round(best_prob, 8),
+            "best_expected": round(best_exp, 1) if best_exp != float("inf") else None,
+            "best_pity99": best_pity if best_pity != float("inf") else None,
+            "target_name": event_names[target_event - 1],
+            "curve": curve,
+            "distribution": distribution,
+        }
+    )
 
 
 @app.route("/api/distribution", methods=["POST"])
@@ -174,11 +188,13 @@ def api_distribution():
 
     distribution = []
     for i, (ename, p) in enumerate(zip(event_names, dist_probs)):
-        distribution.append({
-            "index": i,
-            "name": ename,
-            "prob": round(p, 8),
-        })
+        distribution.append(
+            {
+                "index": i,
+                "name": ename,
+                "prob": round(p, 8),
+            }
+        )
     return jsonify({"n": n, "distribution": distribution})
 
 

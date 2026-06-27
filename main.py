@@ -4,8 +4,8 @@ import json
 import math
 import os
 
-from core.events import Events
 from core.engine import find_best_n, prob_event
+from core.events import Events
 from generators import ALL as all_generators
 
 
@@ -20,7 +20,7 @@ def _parse_prob(value) -> float:
     return float(s)
 
 
-def load_events(path: str = None) -> tuple[Events, list[str], list]:
+def load_events(path: str | None = None) -> tuple[Events, list[str], list]:
     """Load event config from JSON.
 
     JSON format: [{"name": "...", "probability": <float> or "1/N"}, ...]
@@ -29,7 +29,7 @@ def load_events(path: str = None) -> tuple[Events, list[str], list]:
     """
     if path is None:
         path = os.path.join(os.path.dirname(__file__), "events.json")
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         data = json.load(f)
     names = [entry["name"] for entry in data]
     raw_probs = [entry["probability"] for entry in data]
@@ -69,7 +69,7 @@ def main():
 
     # 3. Load event config
     events, event_names, raw_probs = load_events()
-    print(f"\nEvent tiers (from events.json):")
+    print("\nEvent tiers (from events.json):")
     for i, (name, raw) in enumerate(zip(event_names, raw_probs), 1):
         if isinstance(raw, str):
             print(f"  [{i}] {name}  ({raw})")
@@ -86,13 +86,12 @@ def main():
     # 6. Optimize
     print(f"\nSearching n=1..{n_max} for best {target_name}...")
     best_n = find_best_n(n_max, k_gen, formulas, events, target)
-    best_prob = prob_event(best_n, k_gen, formulas, events, target)
 
     def _expected(p: float) -> float:
         """Expected attempts until first success (geometric distribution)."""
         return 1.0 / p if p > 0 else float("inf")
 
-    def _pity99(p: float) -> int:
+    def _pity99(p: float) -> int | float:
         """Attempts needed for >= 99% chance of at least one success."""
         if p <= 0:
             return float("inf")
@@ -103,7 +102,7 @@ def main():
     # Show probability curve across n
     print(f"\n  P({target_name}) vs n:")
     print(f"  {'n':<6} {'P':<14} {'E[attempts]':<14} {'pity99':<10}")
-    print(f"  {'-'*44}")
+    print(f"  {'-' * 44}")
     for n in range(1, n_max + 1):
         p = prob_event(n, k_gen, formulas, events, target)
         marker = "  <-- best" if n == best_n else ""

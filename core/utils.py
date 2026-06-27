@@ -1,9 +1,9 @@
 """Combinatorics and fixed-point integer utilities."""
 
-from functools import lru_cache
+from functools import cache
 
 
-@lru_cache(maxsize=None)
+@cache
 def binom(n: int, k: int) -> int:
     """C(n, k) as exact Python int.
 
@@ -20,5 +20,3 @@ def binom(n: int, k: int) -> int:
     for i in range(1, k + 1):
         result = result * (n - i + 1) // i
     return result
-
-

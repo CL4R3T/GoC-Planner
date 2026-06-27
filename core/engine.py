@@ -1,7 +1,7 @@
 """Core computation engine."""
 
-from generators.base import Formula
 from core.events import Events
+from generators.base import Formula
 
 
 def _count_in_interval(
@@ -69,7 +69,7 @@ def prob_event(
 
     Uses independence approximation across formulas.
     """
-    denom = k_gen ** n
+    denom = k_gen**n
     p_upper, p_lower = events.interval_bounds(target_event)
     prob_no = 1.0
 
@@ -112,7 +112,7 @@ def full_distribution(
     Returns:
         probs: probs[k-1] = P(event k triggers), 1-indexed
     """
-    denom = k_gen ** n
+    denom = k_gen**n
     m = len(events)
     probs = [0.0] * m
 
