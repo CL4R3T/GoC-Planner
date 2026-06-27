@@ -1,7 +1,8 @@
 """Formula data structure."""
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Literal
+from typing import Literal
 
 FormulaKind = Literal["cumulative", "exact", "binary"]
 
@@ -16,6 +17,7 @@ class Formula:
         valid_x: given n, returns sorted list of all valid x values
         compute: given (n, x), returns favorable outcome count (numerator), denominator = k**n
     """
+
     name: str
     kind: FormulaKind
     valid_x: Callable[[int], list[int]]

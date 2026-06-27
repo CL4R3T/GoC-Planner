@@ -1,7 +1,7 @@
 """Event Optimizer — interactive CLI."""
 
-from core.engine import find_best_n, prob_event
 from core.config import load_ladder
+from core.engine import find_best_n, prob_event
 from core.stats import expected_attempts, pity99
 from generators import ALL as all_generators
 
@@ -38,7 +38,7 @@ def main():
 
     # 3. Load event config
     events = load_ladder()
-    print(f"\nEvent tiers (from ladder.toml):")
+    print("\nEvent tiers (from ladder.toml):")
     for i, tier in enumerate(events.tiers, 1):
         print(f"  [{i:<2}] ({tier.grade:<10}) {tier.name}  ({tier.raw})")
 
@@ -56,7 +56,7 @@ def main():
     # Show probability curve across n
     print(f"\n  P({target_name}) vs n:")
     print(f"  {'n':<6} {'P':<16} {'E[attempts]':<14} {'pity99':<10}")
-    print(f"  {'-'*48}")
+    print(f"  {'-' * 48}")
     for n in range(1, n_max + 1):
         p = prob_event(n, k_gen, formulas, events, target)
         marker = "  <-- best" if n == best_n else ""

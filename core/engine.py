@@ -7,8 +7,8 @@ float-boundary bug where large n shifted the x boundary by one).
 
 from fractions import Fraction
 
-from generators.base import Formula
 from core.events import Events
+from generators.base import Formula
 
 
 def _le_threshold(count: int, denom: int, threshold: Fraction) -> bool:
@@ -88,7 +88,7 @@ def prob_event(
     trial sequence; fixing it (true joint distribution) is deferred to a
     later branch. Computation itself is exact-rational here.
     """
-    denom = k_gen ** n
+    denom = k_gen**n
     p_upper, p_lower = events.interval_bounds(target_event)
     prob_no = Fraction(1)
 
@@ -97,7 +97,7 @@ def prob_event(
         if count <= 0:
             continue
         p_f = Fraction(count, denom)
-        prob_no *= (1 - p_f)
+        prob_no *= 1 - p_f
 
     return float(1 - prob_no)
 
@@ -131,7 +131,7 @@ def full_distribution(
     Returns:
         probs: probs[k-1] = P(event k triggers), 1-indexed
     """
-    denom = k_gen ** n
+    denom = k_gen**n
     m = len(events)
     probs_no = [Fraction(1)] * m
 
@@ -142,6 +142,6 @@ def full_distribution(
             if count <= 0:
                 continue
             p_f = Fraction(count, denom)
-            probs_no[k - 1] *= (1 - p_f)
+            probs_no[k - 1] *= 1 - p_f
 
     return [float(1 - pn) for pn in probs_no]

@@ -11,6 +11,7 @@ class Tier:
     Bundling name/grade/threshold into one object guarantees they stay
     aligned through any reordering (fixes the old sort-desync bug).
     """
+
     name: str
     grade: str
     threshold: Fraction

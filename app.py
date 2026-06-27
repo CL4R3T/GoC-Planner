@@ -2,8 +2,8 @@
 
 from flask import Flask, jsonify, render_template, request
 
-from core.engine import find_best_n, prob_event, full_distribution
-from core.config import load_ladder, GRADE_COLORS, GRADE_ORDER
+from core.config import GRADE_COLORS, GRADE_ORDER, load_ladder
+from core.engine import find_best_n, full_distribution, prob_event
 from core.stats import expected_attempts, pity99
 from generators import ALL as all_generators
 
@@ -11,6 +11,7 @@ app = Flask(__name__)
 
 
 # ── routes ───────────────────────────────────────────────────────────────────
+
 
 @app.route("/")
 def index():
@@ -27,29 +28,35 @@ def api_config():
     for i, mod in enumerate(all_generators):
         name = mod.__name__.split(".")[-1]
         formulas = [{"index": j, "name": f.name} for j, f in enumerate(mod.FORMULAS)]
-        generators.append({
-            "index": i,
-            "name": name,
-            "k": mod.K,
-            "formulas": formulas,
-        })
+        generators.append(
+            {
+                "index": i,
+                "name": name,
+                "k": mod.K,
+                "formulas": formulas,
+            }
+        )
 
     event_list = []
     for i, tier in enumerate(events.tiers):
-        event_list.append({
-            "index": i,
-            "name": tier.name,
-            "probability": tier.raw,
-            "value": float(tier.threshold),
-            "grade": tier.grade,
-        })
+        event_list.append(
+            {
+                "index": i,
+                "name": tier.name,
+                "probability": tier.raw,
+                "value": float(tier.threshold),
+                "grade": tier.grade,
+            }
+        )
 
-    return jsonify({
-        "generators": generators,
-        "events": event_list,
-        "grades": GRADE_ORDER,
-        "grade_colors": GRADE_COLORS,
-    })
+    return jsonify(
+        {
+            "generators": generators,
+            "events": event_list,
+            "grades": GRADE_ORDER,
+            "grade_colors": GRADE_COLORS,
+        }
+    )
 
 
 @app.route("/api/optimize", methods=["POST"])
@@ -80,38 +87,44 @@ def api_optimize():
         p = prob_event(n, k_gen, formulas, events, target_event)
         exp = expected_attempts(p)
         p99 = pity99(p)
-        curve.append({
-            "n": n,
-            "prob": round(p, 12),
-            "expected": round(exp, 1) if exp != float("inf") else None,
-            "pity99": p99 if p99 != float("inf") else None,
-            "is_best": n == best_n,
-        })
+        curve.append(
+            {
+                "n": n,
+                "prob": round(p, 12),
+                "expected": round(exp, 1) if exp != float("inf") else None,
+                "pity99": p99 if p99 != float("inf") else None,
+                "is_best": n == best_n,
+            }
+        )
 
     # Full distribution at best_n
     dist_probs = full_distribution(best_n, k_gen, formulas, events)
     distribution = []
     for i, (tier, p) in enumerate(zip(events.tiers, dist_probs)):
-        distribution.append({
-            "index": i,
-            "name": tier.name,
-            "grade": tier.grade,
-            "prob": round(p, 12),
-            "is_target": (i + 1) == target_event,
-        })
+        distribution.append(
+            {
+                "index": i,
+                "name": tier.name,
+                "grade": tier.grade,
+                "prob": round(p, 12),
+                "is_target": (i + 1) == target_event,
+            }
+        )
 
     best_exp = expected_attempts(best_prob)
     best_pity = pity99(best_prob)
 
-    return jsonify({
-        "best_n": best_n,
-        "best_prob": round(best_prob, 12),
-        "best_expected": round(best_exp, 1) if best_exp != float("inf") else None,
-        "best_pity99": best_pity if best_pity != float("inf") else None,
-        "target_name": events.tiers[target_event - 1].name,
-        "curve": curve,
-        "distribution": distribution,
-    })
+    return jsonify(
+        {
+            "best_n": best_n,
+            "best_prob": round(best_prob, 12),
+            "best_expected": round(best_exp, 1) if best_exp != float("inf") else None,
+            "best_pity99": best_pity if best_pity != float("inf") else None,
+            "target_name": events.tiers[target_event - 1].name,
+            "curve": curve,
+            "distribution": distribution,
+        }
+    )
 
 
 @app.route("/api/distribution", methods=["POST"])
@@ -131,12 +144,14 @@ def api_distribution():
 
     distribution = []
     for i, (tier, p) in enumerate(zip(events.tiers, dist_probs)):
-        distribution.append({
-            "index": i,
-            "name": tier.name,
-            "grade": tier.grade,
-            "prob": round(p, 12),
-        })
+        distribution.append(
+            {
+                "index": i,
+                "name": tier.name,
+                "grade": tier.grade,
+                "prob": round(p, 12),
+            }
+        )
     return jsonify({"n": n, "distribution": distribution})
 
 

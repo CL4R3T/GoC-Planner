@@ -74,18 +74,18 @@ def load_ladder(path: str | None = None) -> Events:
         if grade not in grade_seen:
             raise ValueError(f"unknown grade {grade!r} in ladder.toml")
         grade_seen[grade] += 1
-        tiers.append(Tier(
-            name=_clean_name(entry["desc"]),
-            grade=grade,
-            threshold=parse_prob(entry["prob"]),
-            raw=entry["prob"],
-        ))
+        tiers.append(
+            Tier(
+                name=_clean_name(entry["desc"]),
+                grade=grade,
+                threshold=parse_prob(entry["prob"]),
+                raw=entry["prob"],
+            )
+        )
 
     # Validate grade counts.
     for grade, expected in GRADE_COUNTS.items():
         if grade_seen[grade] != expected:
-            raise ValueError(
-                f"grade {grade!r} count {grade_seen[grade]} != expected {expected}"
-            )
+            raise ValueError(f"grade {grade!r} count {grade_seen[grade]} != expected {expected}")
 
     return Events(tiers)

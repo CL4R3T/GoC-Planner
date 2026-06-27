@@ -1,15 +1,15 @@
 """Fair coin (k=2) formulas, in unlock order."""
 
-from functools import lru_cache
+from functools import cache
 from math import isqrt
 
-from generators.base import Formula
 from core.utils import binom
+from generators.base import Formula
 
 K = 2
 
 
-@lru_cache(maxsize=None)
+@cache
 def _primes_upto(n: int) -> list[int]:
     """Cached list of primes in [2, n] using Sieve of Eratosthenes."""
     if n < 2:
@@ -20,7 +20,7 @@ def _primes_upto(n: int) -> list[int]:
         if sieve[i]:
             step = i
             start = i * i
-            sieve[start:n + 1:step] = [False] * ((n - start) // step + 1)
+            sieve[start : n + 1 : step] = [False] * ((n - start) // step + 1)
     return [i for i, ok in enumerate(sieve) if ok]
 
 
@@ -34,7 +34,7 @@ def _exact_x_heads(n: int, x: int) -> int:
     return binom(n, x)
 
 
-@lru_cache(maxsize=None)
+@cache
 def _no_streak(n: int, x: int) -> int:
     """Sequences of length n with NO run of x consecutive heads.
 
@@ -42,7 +42,7 @@ def _no_streak(n: int, x: int) -> int:
     Base: a_n = 2^n for n < x.
     """
     if n < x:
-        return 2 ** n
+        return 2**n
     total = 0
     for i in range(1, x + 1):
         total += _no_streak(n - i, x)
@@ -53,7 +53,7 @@ def _longest_streak(n: int, x: int) -> int:
     """Favorable outcomes with at least x consecutive heads."""
     if x > n:
         return 0
-    return (2 ** n) - _no_streak(n, x)
+    return (2**n) - _no_streak(n, x)
 
 
 def _longest_alternating(n: int, x: int) -> int:
@@ -66,7 +66,7 @@ def _longest_alternating(n: int, x: int) -> int:
     i.e. 2 * LongestStreak(n-1, x-1).
     """
     if x <= 1:
-        return 2 ** n
+        return 2**n
     if x > n:
         return 0
     return 2 * _longest_streak(n - 1, x - 1)
@@ -101,8 +101,6 @@ FORMULAS: list[Formula] = [
         name="Prime Count",
         kind="binary",
         valid_x=lambda n: [0],  # placeholder, x is ignored
-        compute=lambda n, x: sum(
-            binom(n, p) for p in _primes_upto(n)
-        ),
+        compute=lambda n, x: sum(binom(n, p) for p in _primes_upto(n)),
     ),
 ]
