@@ -1,43 +1,46 @@
-"""Event threshold management."""
+"""Event threshold management with exact rational thresholds."""
+
+from dataclasses import dataclass
+from fractions import Fraction
+
+
+@dataclass
+class Tier:
+    """A single ladder tier: name, rarity grade, and exact threshold.
+
+    Bundling name/grade/threshold into one object guarantees they stay
+    aligned through any reordering (fixes the old sort-desync bug).
+    """
+    name: str
+    grade: str
+    threshold: Fraction
+    raw: str  # original prob string from config, for faithful display
 
 
 class Events:
     """Event threshold manager.
 
-    Attributes:
-        thresholds: descending thresholds p₁ > p₂ > ... > pₘ
+    tiers: descending by threshold (p₁ > p₂ > ... > pₘ). Each tier bundles
+    its display name and rarity grade alongside its threshold.
     """
 
-    def __init__(self, thresholds: list[float]):
-        self.thresholds = sorted(thresholds, reverse=True)
+    def __init__(self, tiers: list[Tier]):
+        self.tiers = sorted(tiers, key=lambda t: t.threshold, reverse=True)
 
     def __len__(self) -> int:
-        return len(self.thresholds)
+        return len(self.tiers)
 
     @property
-    def p(self) -> list[float]:
+    def thresholds(self) -> list[Fraction]:
         """Threshold list, p[k] = p_k (0-indexed)."""
-        return self.thresholds
+        return [t.threshold for t in self.tiers]
 
-    def find_interval(self, rarity: float) -> int | None:
-        """Return event index (1-indexed), or None if rarity is too large.
-
-        Event k corresponds to interval (p_{k+1}, p_k].
-        p_0 treated as +inf, p_{m+1} treated as 0.
-        """
-        if rarity > self.thresholds[0]:
-            return None
-        for i, t in enumerate(self.thresholds):
-            if rarity > t:
-                return i  # in (thresholds[i], thresholds[i-1]], i.e. event i
-        return len(self.thresholds)  # <= p_m, i.e. event m
-
-    def interval_bounds(self, k: int) -> tuple[float, float]:
+    def interval_bounds(self, k: int) -> tuple[Fraction, Fraction]:
         """Return interval bounds (p_upper, p_lower] for event k (1-indexed).
 
         p_upper = p_k (inclusive upper bound)
         p_lower = p_{k+1} (exclusive lower bound), 0 if k = m
         """
-        p_upper = self.thresholds[k - 1]
-        p_lower = self.thresholds[k] if k < len(self.thresholds) else 0.0
+        p_upper = self.tiers[k - 1].threshold
+        p_lower = self.tiers[k].threshold if k < len(self.tiers) else Fraction(0)
         return p_upper, p_lower

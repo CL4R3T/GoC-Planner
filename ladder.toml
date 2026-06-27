@@ -1,0 +1,241 @@
+# Game of Chance — Probability Ladder
+# Events ordered from most likely to least likely.
+# prob: "M/N" fraction OR "P%" percentage — loader parses both to exact Fraction.
+# grade: rarity tier (blue/purple/golden/diamond/legendary/impossible).
+#   blue       20  (1%, 10%]
+#   purple      8  (0.1%, 1%]
+#   golden      7  (0.01%, 0.1%]
+#   diamond     5  (0.001%, 0.01%]
+#   legendary   4
+#   impossible  2  (the last two)
+# desc: leading "... " is stripped by the loader before use.
+
+[[events]]
+prob = "10%"
+grade = "blue"
+desc = "... being left-handed."
+
+[[events]]
+prob = "9.5%"
+grade = "blue"
+desc = "... having blue eyes."
+
+[[events]]
+prob = "9%"
+grade = "blue"
+desc = "... keeping a New Year's resolution for the entire year."
+
+[[events]]
+prob = "1/12"
+grade = "blue"
+desc = "... a man being color-blind."
+
+[[events]]
+prob = "7.73%"
+grade = "blue"
+desc = "... being born in February."
+
+[[events]]
+prob = "7.2%"
+grade = "blue"
+desc = "... a random star in the Milky Way being 'Sun-like' (Class G)."
+
+[[events]]
+prob = "6.9%"
+grade = "blue"
+desc = "... a random person being Buddhist."
+
+[[events]]
+prob = "6.6%"
+grade = "blue"
+desc = "... having O-Negative blood."
+
+[[events]]
+prob = "6.2%"
+grade = "blue"
+desc = "... having Spanish as your native language."
+
+[[events]]
+prob = "5.9%"
+grade = "blue"
+desc = "... being dealt a 'Pocket Pair' in Texas Hold'Em."
+
+[[events]]
+prob = "5.5%"
+grade = "blue"
+desc = "... having a third nipple (Polythelia)."
+
+[[events]]
+prob = "4.83%"
+grade = "blue"
+desc = "... getting a blackjack (first two cards)."
+
+[[events]]
+prob = "4.4%"
+grade = "blue"
+desc = "... having Synesthesia (hearing colors, tasting shapes)."
+
+[[events]]
+prob = "3.98%"
+grade = "blue"
+desc = "... picking a letter 'L' at random from a book."
+
+[[events]]
+prob = "3.6%"
+grade = "blue"
+desc = "... getting into Harvard. (acceptance rates for applicants)"
+
+[[events]]
+prob = "3.05%"
+grade = "blue"
+desc = "... a desktop computer running Linux."
+
+[[events]]
+prob = "1/36"
+grade = "blue"
+desc = "... rolling 'Snake Eyes' (two 1s) on a pair of dice."
+
+[[events]]
+prob = "2.37%"
+grade = "blue"
+desc = "... being born a twin."
+
+[[events]]
+prob = "2%"
+grade = "blue"
+desc = "... having naturally green eyes."
+
+[[events]]
+prob = "1.5%"
+grade = "blue"
+desc = "... a startup getting into Y Combinator."
+
+[[events]]
+prob = "1%"
+grade = "purple"
+desc = "... being a 'natural short sleeper' (needing only 4 hours of rest)."
+
+[[events]]
+prob = "0.79%"
+grade = "purple"
+desc = "... a random person having autism."
+
+[[events]]
+prob = "0.5%"
+grade = "purple"
+desc = "... a woman being color-blind."
+
+[[events]]
+prob = "0.45%"
+grade = "purple"
+desc = "... being dealt 'Pocket Aces' in Texas Hold'Em."
+
+[[events]]
+prob = "0.31%"
+grade = "purple"
+desc = "... making a random first accusation in Cluedo that is correct."
+
+[[events]]
+prob = "0.27%"
+grade = "purple"
+desc = "... meeting a stranger who has your exact birthday."
+
+[[events]]
+prob = "0.2%"
+grade = "purple"
+desc = "... being born with an extra finger or toe. (Polydactyly)"
+
+[[events]]
+prob = "1/610"
+grade = "purple"
+desc = "... a sheep spawning as Pink in Minecraft."
+
+[[events]]
+prob = "1/960"
+grade = "golden"
+desc = "... starting with the standard position from standard chess in Chess960."
+
+[[events]]
+prob = "1/1296"
+grade = "golden"
+desc = "... rolling a Yahtzee on your first roll."
+
+[[events]]
+prob = "1/1461"
+grade = "golden"
+desc = "... being born on February 29 (Leap Day)."
+
+[[events]]
+prob = "1/2500"
+grade = "golden"
+desc = "... a Pro Golfer making a Hole-in-One."
+
+[[events]]
+prob = "1/3030"
+grade = "golden"
+desc = "... a Calico cat being male."
+
+[[events]]
+prob = "1/4098"
+grade = "golden"
+desc = "... encountering a 'Shiny' Pokémon."
+
+[[events]]
+prob = "1/5076"
+grade = "golden"
+desc = "... a clover being a four-leaf clover."
+
+[[events]]
+prob = "1/10000"
+grade = "diamond"
+desc = "... finding a pearl in an oyster."
+
+[[events]]
+prob = "1/11494"
+grade = "diamond"
+desc = "... an average bowler bowling a perfect 300 game."
+
+[[events]]
+prob = "1/15291"
+grade = "diamond"
+desc = "... being struck by lightning in your lifetime."
+
+[[events]]
+prob = "1/24390"
+grade = "diamond"
+desc = "... a clover being a five-leaf clover."
+
+[[events]]
+prob = "1/55556"
+grade = "diamond"
+desc = "???"
+
+[[events]]
+prob = "1/100000"
+grade = "legendary"
+desc = "???"
+
+[[events]]
+prob = "1/649351"
+grade = "legendary"
+desc = "???"
+
+[[events]]
+prob = "1/1000000"
+grade = "legendary"
+desc = "???"
+
+[[events]]
+prob = "1/1600000"
+grade = "legendary"
+desc = "???"
+
+[[events]]
+prob = "1/13983816"
+grade = "impossible"
+desc = "???"
+
+[[events]]
+prob = "1/292201338"
+grade = "impossible"
+desc = "???"
