@@ -1,61 +1,13 @@
 """Event Optimizer — Web GUI backend."""
 
-import json
-import math
-import os
-
 from flask import Flask, jsonify, render_template, request
 
+from core.config import GRADE_COLORS, GRADE_ORDER, load_ladder
 from core.engine import find_best_n, full_distribution, prob_event
-from core.events import Events
+from core.stats import expected_attempts, pity99
 from generators import ALL as all_generators
 
 app = Flask(__name__)
-
-
-# ── helpers (mirror main.py) ────────────────────────────────────────────────
-
-
-def _parse_prob(value) -> float:
-    """Parse probability: float or '1/N' string."""
-    if isinstance(value, (int, float)):
-        return float(value)
-    s = value.replace(",", "")
-    if s.startswith("1/"):
-        return 1.0 / int(s[2:])
-    return float(s)
-
-
-def _load_events() -> tuple[Events, list[str], list]:
-    """Load event config from events.json."""
-    path = os.path.join(os.path.dirname(__file__), "events.json")
-    with open(path, encoding="utf-8") as f:
-        data = json.load(f)
-    names = [entry["name"] for entry in data]
-    raw_probs = [entry["probability"] for entry in data]
-    thresholds = [_parse_prob(p) for p in raw_probs]
-    return Events(thresholds), names, raw_probs
-
-
-def _format_prob(raw) -> str:
-    """Format a raw probability for display."""
-    if isinstance(raw, str):
-        return raw
-    return str(raw)
-
-
-def _expected(p: float) -> float:
-    """Expected attempts until first success."""
-    return 1.0 / p if p > 0 else float("inf")
-
-
-def _pity99(p: float) -> int | float:
-    """Attempts needed for >= 99% chance of at least one success."""
-    if p <= 0:
-        return float("inf")
-    if p >= 0.99:
-        return 1
-    return math.ceil(math.log(0.01) / math.log(1.0 - p))
 
 
 # ── routes ───────────────────────────────────────────────────────────────────
@@ -70,7 +22,7 @@ def index():
 @app.route("/api/config")
 def api_config():
     """Return generators, formulas, events for the frontend to build the UI."""
-    events, event_names, raw_probs = _load_events()
+    events = load_ladder()
 
     generators = []
     for i, mod in enumerate(all_generators):
@@ -86,13 +38,14 @@ def api_config():
         )
 
     event_list = []
-    for i, (ename, raw) in enumerate(zip(event_names, raw_probs)):
+    for i, tier in enumerate(events.tiers):
         event_list.append(
             {
                 "index": i,
-                "name": ename,
-                "probability": _format_prob(raw),
-                "value": _parse_prob(raw),
+                "name": tier.name,
+                "probability": tier.raw,
+                "value": float(tier.threshold),
+                "grade": tier.grade,
             }
         )
 
@@ -100,6 +53,8 @@ def api_config():
         {
             "generators": generators,
             "events": event_list,
+            "grades": GRADE_ORDER,
+            "grade_colors": GRADE_COLORS,
         }
     )
 
@@ -120,7 +75,7 @@ def api_optimize():
     formulas = mod.FORMULAS[:f_count]
 
     # Load events
-    events, event_names, raw_probs = _load_events()
+    events = load_ladder()
 
     # Find best n
     best_n = find_best_n(n_max, k_gen, formulas, events, target_event)
@@ -130,14 +85,14 @@ def api_optimize():
     curve = []
     for n in range(1, n_max + 1):
         p = prob_event(n, k_gen, formulas, events, target_event)
-        exp = _expected(p)
-        pity = _pity99(p)
+        exp = expected_attempts(p)
+        p99 = pity99(p)
         curve.append(
             {
                 "n": n,
-                "prob": round(p, 8),
+                "prob": round(p, 12),
                 "expected": round(exp, 1) if exp != float("inf") else None,
-                "pity99": pity if pity != float("inf") else None,
+                "pity99": p99 if p99 != float("inf") else None,
                 "is_best": n == best_n,
             }
         )
@@ -145,26 +100,27 @@ def api_optimize():
     # Full distribution at best_n
     dist_probs = full_distribution(best_n, k_gen, formulas, events)
     distribution = []
-    for i, (ename, p) in enumerate(zip(event_names, dist_probs)):
+    for i, (tier, p) in enumerate(zip(events.tiers, dist_probs)):
         distribution.append(
             {
                 "index": i,
-                "name": ename,
-                "prob": round(p, 8),
+                "name": tier.name,
+                "grade": tier.grade,
+                "prob": round(p, 12),
                 "is_target": (i + 1) == target_event,
             }
         )
 
-    best_exp = _expected(best_prob)
-    best_pity = _pity99(best_prob)
+    best_exp = expected_attempts(best_prob)
+    best_pity = pity99(best_prob)
 
     return jsonify(
         {
             "best_n": best_n,
-            "best_prob": round(best_prob, 8),
+            "best_prob": round(best_prob, 12),
             "best_expected": round(best_exp, 1) if best_exp != float("inf") else None,
             "best_pity99": best_pity if best_pity != float("inf") else None,
-            "target_name": event_names[target_event - 1],
+            "target_name": events.tiers[target_event - 1].name,
             "curve": curve,
             "distribution": distribution,
         }
@@ -183,16 +139,17 @@ def api_distribution():
     k_gen = mod.K
     formulas = mod.FORMULAS[:f_count]
 
-    events, event_names, _ = _load_events()
+    events = load_ladder()
     dist_probs = full_distribution(n, k_gen, formulas, events)
 
     distribution = []
-    for i, (ename, p) in enumerate(zip(event_names, dist_probs)):
+    for i, (tier, p) in enumerate(zip(events.tiers, dist_probs)):
         distribution.append(
             {
                 "index": i,
-                "name": ename,
-                "prob": round(p, 8),
+                "name": tier.name,
+                "grade": tier.grade,
+                "prob": round(p, 12),
             }
         )
     return jsonify({"n": n, "distribution": distribution})
