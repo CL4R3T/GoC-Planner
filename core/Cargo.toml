@@ -1,0 +1,20 @@
+[package]
+name = "goc-core"
+version = "0.1.0"
+description = "GoC-Planner 的纯逻辑计算核心：BaseGame / Statistic / Formula / Ladder"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "goc_core"
+path = "src/lib.rs"
+
+[dependencies]
+num-bigint = "0.4"
+num-rational = "0.4"
+num-traits = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+indexmap = { version = "2", features = ["serde"] }
