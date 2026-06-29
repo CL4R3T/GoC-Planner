@@ -67,6 +67,6 @@ pub fn expected_attempts(p: f64) -> f64 {
 }
 
 #[wasm_bindgen]
-pub fn pity99(p: f64) -> usize {
+pub fn pity99(p: f64) -> f64 {
     stats::pity99(p)
 }
