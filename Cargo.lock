@@ -31,6 +31,8 @@ dependencies = [
 name = "goc-python"
 version = "0.1.0"
 dependencies = [
+ "goc-core",
+ "num-traits",
  "pyo3",
 ]
 
