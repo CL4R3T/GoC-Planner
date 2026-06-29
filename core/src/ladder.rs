@@ -46,13 +46,17 @@ impl Ladder {
         let mut tiers: Vec<Tier> = raw
             .events
             .into_iter()
-            .map(|e| Tier {
-                name: clean_name(&e.desc),
-                grade: e.grade,
-                threshold: parse_prob(&e.prob),
-                raw: e.prob,
+            .map(|e| {
+                let threshold =
+                    parse_prob(&e.prob).map_err(|err| format!("event {:?}: {err}", e.desc))?;
+                Ok::<_, String>(Tier {
+                    name: clean_name(&e.desc),
+                    grade: e.grade,
+                    threshold,
+                    raw: e.prob,
+                })
             })
-            .collect();
+            .collect::<Result<Vec<_>, _>>()?;
 
         for t in &tiers {
             if !GRADE_COUNTS.iter().any(|(g, _)| *g == t.grade) {
@@ -109,13 +113,21 @@ impl Ladder {
     }
 }
 
-pub fn parse_prob(raw: &str) -> BigRational {
+pub fn parse_prob(raw: &str) -> Result<BigRational, String> {
     let s = raw.trim().replace(',', "");
     if let Some(pct) = s.strip_suffix('%') {
-        return decimal(pct) / decimal("100");
+        return Ok(decimal(pct)? / decimal("100")?);
     }
     if let Some((n, d)) = s.split_once('/') {
-        return rat(n.parse().unwrap(), d.parse().unwrap());
+        let n: BigInt = n
+            .trim()
+            .parse()
+            .map_err(|e| format!("bad numerator {n:?}: {e}"))?;
+        let d: BigInt = d
+            .trim()
+            .parse()
+            .map_err(|e| format!("bad denominator {d:?}: {e}"))?;
+        return Ok(rat(n, d));
     }
     decimal(&s)
 }
@@ -124,13 +136,16 @@ fn rat(n: BigInt, d: BigInt) -> BigRational {
     BigRational::new(n, d)
 }
 
-fn decimal(s: &str) -> BigRational {
+fn decimal(s: &str) -> Result<BigRational, String> {
     if let Some((intp, fracp)) = s.split_once('.') {
-        let numer: BigInt = format!("{intp}{fracp}").parse().unwrap();
+        let numer: BigInt = format!("{intp}{fracp}")
+            .parse()
+            .map_err(|e| format!("bad decimal {s:?}: {e}"))?;
         let denom = BigInt::from(10u32).pow(fracp.len() as u32);
-        rat(numer, denom)
+        Ok(rat(numer, denom))
     } else {
-        rat(s.parse().unwrap(), BigInt::from(1u32))
+        let n: BigInt = s.parse().map_err(|e| format!("bad integer {s:?}: {e}"))?;
+        Ok(rat(n, BigInt::from(1u32)))
     }
 }
 

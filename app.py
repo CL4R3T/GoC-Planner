@@ -19,6 +19,35 @@ GRADE_COLORS = {
 }
 
 
+# ── helpers ──────────────────────────────────────────────────────────────────
+
+
+def _json_body():
+    """Return the request JSON, tolerating a missing/invalid body."""
+    return request.get_json(silent=True) or {}
+
+
+def _as_int(body, key, default):
+    """Coerce a body field to int, falling back to default on bad input."""
+    try:
+        return int(body.get(key, default))
+    except (TypeError, ValueError):
+        return default
+
+
+def _optimize_params(body):
+    """Extract and clamp the optimize-endpoint inputs from a request body.
+
+    Keeps the Python-level ``tiers[target_event - 1]`` indexing in bounds and
+    avoids handing out-of-range values to the Rust extension.
+    """
+    tiers = ladder_tiers()
+    f_count = max(1, _as_int(body, "formula_count", 1))
+    target_event = max(1, min(_as_int(body, "target_event", 1), len(tiers)))
+    n_max = max(1, _as_int(body, "n_max", 1))
+    return f_count, target_event, n_max
+
+
 # ── routes ───────────────────────────────────────────────────────────────────
 
 
@@ -58,11 +87,9 @@ def api_config():
 @app.route("/api/optimize", methods=["POST"])
 def api_optimize():
     """Run optimization and return curve + distribution data."""
-    body = request.get_json()
+    body = _json_body()
 
-    f_count = body["formula_count"]
-    target_event = body["target_event"]  # 1-indexed
-    n_max = body["n_max"]
+    f_count, target_event, n_max = _optimize_params(body)
 
     tiers = ladder_tiers()
 
@@ -116,9 +143,11 @@ def api_optimize():
 @app.route("/api/distribution", methods=["POST"])
 def api_distribution():
     """Return full event distribution at a specific n."""
-    body = request.get_json()
-    f_count = body["formula_count"]
-    n = body["n"]
+    body = _json_body()
+
+    # formula_count is clamped by the Rust extension; coerce and guard n >= 1.
+    f_count = max(1, _as_int(body, "formula_count", 1))
+    n = max(1, _as_int(body, "n", 1))
 
     tiers = ladder_tiers()
     dist_probs = full_distribution(n, f_count)
