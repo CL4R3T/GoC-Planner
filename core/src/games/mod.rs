@@ -26,6 +26,7 @@ pub trait GameFormula: Sized {
     fn all() -> Vec<Self>;
     fn freqs(&self, n: usize) -> Vec<BigUint>;
     fn mode(&self) -> Mode;
+    fn name(&self) -> &str;
 }
 
 pub struct BaseGameSeqEnumerator {

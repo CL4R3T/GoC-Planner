@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+
+#[cfg(not(target_family = "wasm"))]
 use std::sync::OnceLock;
 
 use num_bigint::BigInt;
@@ -85,9 +87,14 @@ impl Ladder {
         Ok(Ladder { tiers })
     }
 
+    #[cfg(not(target_family = "wasm"))]
     pub fn default_ladder() -> &'static Ladder {
         static LADDER: OnceLock<Ladder> = OnceLock::new();
         LADDER.get_or_init(|| Ladder::from_toml(include_str!("../../ladder.toml")).unwrap())
+    }
+
+    pub fn baked() -> Ladder {
+        Ladder::from_toml(include_str!("../../ladder.toml")).unwrap()
     }
 
     pub fn tiers(&self) -> &[Tier] {

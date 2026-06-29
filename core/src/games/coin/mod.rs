@@ -56,6 +56,16 @@ impl GameFormula for CoinFormula {
             CoinFormula::PrimeCount => Mode::A,
         }
     }
+
+    fn name(&self) -> &str {
+        match self {
+            CoinFormula::AtLeastX => "At Least X",
+            CoinFormula::ExactX => "Exact Count",
+            CoinFormula::LongestStreak => "Longest Streak",
+            CoinFormula::Alternating => "Alternating",
+            CoinFormula::PrimeCount => "Prime Count",
+        }
+    }
 }
 
 fn alternating_freqs(n: usize) -> Vec<BigUint> {
