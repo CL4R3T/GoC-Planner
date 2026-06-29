@@ -1,7 +1,7 @@
 #[pyo3::pymodule]
 mod goc_python {
-    use goc_core::games::coin::CoinFormula;
     use goc_core::games::GameFormula;
+    use goc_core::games::coin::CoinFormula;
     use goc_core::ladder::Ladder;
     use goc_core::planner;
     use num_traits::ToPrimitive;
