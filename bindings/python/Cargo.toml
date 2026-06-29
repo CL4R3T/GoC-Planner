@@ -1,0 +1,13 @@
+[package]
+name = "goc-python"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+name = "goc_python"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = "0.29.0"

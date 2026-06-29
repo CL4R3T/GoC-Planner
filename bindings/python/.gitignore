@@ -1,0 +1,15 @@
+# Binary artifacts
+goc_python/*.so
+goc_python/*.pyd
+goc_python/*.dylib
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# maturin / uv
+dist/
+build/
+*.egg-info/
+wheels/
