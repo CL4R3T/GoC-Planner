@@ -1,6 +1,6 @@
 use num_bigint::BigUint;
 
-use crate::games::{BaseGame, Dist, GameFormula, Statistic, tail_sums};
+use crate::games::{BaseGame, Dist, GameFormula, Mode, Statistic, tail_sums};
 
 pub mod head_count;
 pub use head_count::Headcount;
@@ -37,6 +37,13 @@ impl GameFormula for CoinFormula {
             CoinFormula::ExactX => Headcount::dist(n).all_freqs(),
             CoinFormula::AtLeastX => tail_sums(Headcount::dist(n).all_freqs()),
             CoinFormula::LongestStreak => tail_sums(LongestStreak::dist(n).all_freqs()),
+        }
+    }
+
+    fn mode(&self) -> Mode {
+        match self {
+            CoinFormula::AtLeastX | CoinFormula::LongestStreak => Mode::AtLeast,
+            CoinFormula::ExactX => Mode::Exact,
         }
     }
 }

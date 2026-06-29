@@ -15,9 +15,17 @@ pub trait BaseGame<V = usize> {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Mode {
+    AtLeast,
+    Exact,
+    A,
+}
+
 pub trait GameFormula: Sized {
     fn all() -> Vec<Self>;
     fn freqs(&self, n: usize) -> Vec<BigUint>;
+    fn mode(&self) -> Mode;
 }
 
 pub struct BaseGameSeqEnumerator {
