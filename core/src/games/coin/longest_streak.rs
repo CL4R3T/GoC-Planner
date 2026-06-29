@@ -90,6 +90,6 @@ mod tests {
 
     #[test]
     fn test_longest_streak() {
-        (1..=10).for_each(|n| validate_with::<LongestStreak, _, _, _>(n));
+        (1..=10).for_each(validate_with::<LongestStreak, _, _, _>);
     }
 }

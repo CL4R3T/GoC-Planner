@@ -56,6 +56,6 @@ mod tests {
 
     #[test]
     fn test_headcount() {
-        (1..=10).for_each(|n| validate_with::<Headcount, _, _, _>(n));
+        (1..=10).for_each(validate_with::<Headcount, _, _, _>);
     }
 }
