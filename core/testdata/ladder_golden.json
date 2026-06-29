@@ -1,0 +1,324 @@
+[
+  {
+    "name": "being left-handed.",
+    "grade": "blue",
+    "n": "1",
+    "d": "10",
+    "raw": "10%"
+  },
+  {
+    "name": "having blue eyes.",
+    "grade": "blue",
+    "n": "19",
+    "d": "200",
+    "raw": "9.5%"
+  },
+  {
+    "name": "keeping a New Year's resolution for the entire year.",
+    "grade": "blue",
+    "n": "9",
+    "d": "100",
+    "raw": "9%"
+  },
+  {
+    "name": "a man being color-blind.",
+    "grade": "blue",
+    "n": "1",
+    "d": "12",
+    "raw": "1/12"
+  },
+  {
+    "name": "being born in February.",
+    "grade": "blue",
+    "n": "773",
+    "d": "10000",
+    "raw": "7.73%"
+  },
+  {
+    "name": "a random star in the Milky Way being 'Sun-like' (Class G).",
+    "grade": "blue",
+    "n": "9",
+    "d": "125",
+    "raw": "7.2%"
+  },
+  {
+    "name": "a random person being Buddhist.",
+    "grade": "blue",
+    "n": "69",
+    "d": "1000",
+    "raw": "6.9%"
+  },
+  {
+    "name": "having O-Negative blood.",
+    "grade": "blue",
+    "n": "33",
+    "d": "500",
+    "raw": "6.6%"
+  },
+  {
+    "name": "having Spanish as your native language.",
+    "grade": "blue",
+    "n": "31",
+    "d": "500",
+    "raw": "6.2%"
+  },
+  {
+    "name": "being dealt a 'Pocket Pair' in Texas Hold'Em.",
+    "grade": "blue",
+    "n": "59",
+    "d": "1000",
+    "raw": "5.9%"
+  },
+  {
+    "name": "having a third nipple (Polythelia).",
+    "grade": "blue",
+    "n": "11",
+    "d": "200",
+    "raw": "5.5%"
+  },
+  {
+    "name": "getting a blackjack (first two cards).",
+    "grade": "blue",
+    "n": "483",
+    "d": "10000",
+    "raw": "4.83%"
+  },
+  {
+    "name": "having Synesthesia (hearing colors, tasting shapes).",
+    "grade": "blue",
+    "n": "11",
+    "d": "250",
+    "raw": "4.4%"
+  },
+  {
+    "name": "picking a letter 'L' at random from a book.",
+    "grade": "blue",
+    "n": "199",
+    "d": "5000",
+    "raw": "3.98%"
+  },
+  {
+    "name": "getting into Harvard. (acceptance rates for applicants)",
+    "grade": "blue",
+    "n": "9",
+    "d": "250",
+    "raw": "3.6%"
+  },
+  {
+    "name": "a desktop computer running Linux.",
+    "grade": "blue",
+    "n": "61",
+    "d": "2000",
+    "raw": "3.05%"
+  },
+  {
+    "name": "rolling 'Snake Eyes' (two 1s) on a pair of dice.",
+    "grade": "blue",
+    "n": "1",
+    "d": "36",
+    "raw": "1/36"
+  },
+  {
+    "name": "being born a twin.",
+    "grade": "blue",
+    "n": "237",
+    "d": "10000",
+    "raw": "2.37%"
+  },
+  {
+    "name": "having naturally green eyes.",
+    "grade": "blue",
+    "n": "1",
+    "d": "50",
+    "raw": "2%"
+  },
+  {
+    "name": "a startup getting into Y Combinator.",
+    "grade": "blue",
+    "n": "3",
+    "d": "200",
+    "raw": "1.5%"
+  },
+  {
+    "name": "being a 'natural short sleeper' (needing only 4 hours of rest).",
+    "grade": "purple",
+    "n": "1",
+    "d": "100",
+    "raw": "1%"
+  },
+  {
+    "name": "a random person having autism.",
+    "grade": "purple",
+    "n": "79",
+    "d": "10000",
+    "raw": "0.79%"
+  },
+  {
+    "name": "a woman being color-blind.",
+    "grade": "purple",
+    "n": "1",
+    "d": "200",
+    "raw": "0.5%"
+  },
+  {
+    "name": "being dealt 'Pocket Aces' in Texas Hold'Em.",
+    "grade": "purple",
+    "n": "9",
+    "d": "2000",
+    "raw": "0.45%"
+  },
+  {
+    "name": "making a random first accusation in Cluedo that is correct.",
+    "grade": "purple",
+    "n": "31",
+    "d": "10000",
+    "raw": "0.31%"
+  },
+  {
+    "name": "meeting a stranger who has your exact birthday.",
+    "grade": "purple",
+    "n": "27",
+    "d": "10000",
+    "raw": "0.27%"
+  },
+  {
+    "name": "being born with an extra finger or toe. (Polydactyly)",
+    "grade": "purple",
+    "n": "1",
+    "d": "500",
+    "raw": "0.2%"
+  },
+  {
+    "name": "a sheep spawning as Pink in Minecraft.",
+    "grade": "purple",
+    "n": "1",
+    "d": "610",
+    "raw": "1/610"
+  },
+  {
+    "name": "starting with the standard position from standard chess in Chess960.",
+    "grade": "golden",
+    "n": "1",
+    "d": "960",
+    "raw": "1/960"
+  },
+  {
+    "name": "rolling a Yahtzee on your first roll.",
+    "grade": "golden",
+    "n": "1",
+    "d": "1296",
+    "raw": "1/1296"
+  },
+  {
+    "name": "being born on February 29 (Leap Day).",
+    "grade": "golden",
+    "n": "1",
+    "d": "1461",
+    "raw": "1/1461"
+  },
+  {
+    "name": "a Pro Golfer making a Hole-in-One.",
+    "grade": "golden",
+    "n": "1",
+    "d": "2500",
+    "raw": "1/2500"
+  },
+  {
+    "name": "a Calico cat being male.",
+    "grade": "golden",
+    "n": "1",
+    "d": "3030",
+    "raw": "1/3030"
+  },
+  {
+    "name": "encountering a 'Shiny' Pokémon.",
+    "grade": "golden",
+    "n": "1",
+    "d": "4098",
+    "raw": "1/4098"
+  },
+  {
+    "name": "a clover being a four-leaf clover.",
+    "grade": "golden",
+    "n": "1",
+    "d": "5076",
+    "raw": "1/5076"
+  },
+  {
+    "name": "finding a pearl in an oyster.",
+    "grade": "diamond",
+    "n": "1",
+    "d": "10000",
+    "raw": "1/10000"
+  },
+  {
+    "name": "an average bowler bowling a perfect 300 game.",
+    "grade": "diamond",
+    "n": "1",
+    "d": "11494",
+    "raw": "1/11494"
+  },
+  {
+    "name": "being struck by lightning in your lifetime.",
+    "grade": "diamond",
+    "n": "1",
+    "d": "15291",
+    "raw": "1/15291"
+  },
+  {
+    "name": "a clover being a five-leaf clover.",
+    "grade": "diamond",
+    "n": "1",
+    "d": "24390",
+    "raw": "1/24390"
+  },
+  {
+    "name": "???",
+    "grade": "diamond",
+    "n": "1",
+    "d": "55556",
+    "raw": "1/55556"
+  },
+  {
+    "name": "???",
+    "grade": "legendary",
+    "n": "1",
+    "d": "100000",
+    "raw": "1/100000"
+  },
+  {
+    "name": "???",
+    "grade": "legendary",
+    "n": "1",
+    "d": "649351",
+    "raw": "1/649351"
+  },
+  {
+    "name": "???",
+    "grade": "legendary",
+    "n": "1",
+    "d": "1000000",
+    "raw": "1/1000000"
+  },
+  {
+    "name": "???",
+    "grade": "legendary",
+    "n": "1",
+    "d": "1600000",
+    "raw": "1/1600000"
+  },
+  {
+    "name": "???",
+    "grade": "impossible",
+    "n": "1",
+    "d": "13983816",
+    "raw": "1/13983816"
+  },
+  {
+    "name": "???",
+    "grade": "impossible",
+    "n": "1",
+    "d": "292201338",
+    "raw": "1/292201338"
+  }
+]

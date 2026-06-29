@@ -1,7 +1,7 @@
 """Event Optimizer — interactive CLI."""
 
-from core.config import load_ladder
-from core.engine import find_best_n, prob_event
+from goc_python import find_best_n, ladder_tiers, prob_event
+
 from core.stats import expected_attempts, pity99
 from generators import ALL as all_generators
 
@@ -24,7 +24,7 @@ def main():
         name = mod.__name__.split(".")[-1]
         print(f"  [{i}] {name}")
     choice = int(input(f"\nSelect (1-{len(all_generators)}): ")) - 1
-    _, k_gen, all_formulas = load_generator(choice)
+    _, _, all_formulas = load_generator(choice)
 
     # 2. Formula list
     print(f"\nFormulas (unlock order, {len(all_formulas)} total):")
@@ -34,31 +34,30 @@ def main():
         print("  (No formulas yet. Add them in generators/coin.py)")
         return
     f_count = int(input(f"\nUnlocked formula count (1-{len(all_formulas)}): "))
-    formulas = all_formulas[:f_count]
 
     # 3. Load event config
-    events = load_ladder()
+    tiers = ladder_tiers()
     print("\nEvent tiers (from ladder.toml):")
-    for i, tier in enumerate(events.tiers, 1):
-        print(f"  [{i:<2}] ({tier.grade:<10}) {tier.name}  ({tier.raw})")
+    for i, (name, grade, raw, _threshold) in enumerate(tiers, 1):
+        print(f"  [{i:<2}] ({grade:<10}) {name}  ({raw})")
 
     # 4. Select target event
-    target = int(input(f"\nTarget event tier (1-{len(events)}): "))
-    target_name = events.tiers[target - 1].name
+    target = int(input(f"\nTarget event tier (1-{len(tiers)}): "))
+    target_name = tiers[target - 1][0]
 
     # 5. n upper bound
     n_max = int(input("n upper bound: "))
 
     # 6. Optimize
     print(f"\nSearching n=1..{n_max} for best {target_name}...")
-    best_n = find_best_n(n_max, k_gen, formulas, events, target)
+    best_n = find_best_n(n_max, f_count, target)
 
     # Show probability curve across n
     print(f"\n  P({target_name}) vs n:")
     print(f"  {'n':<6} {'P':<16} {'E[attempts]':<14} {'pity99':<10}")
     print(f"  {'-' * 48}")
     for n in range(1, n_max + 1):
-        p = prob_event(n, k_gen, formulas, events, target)
+        p = prob_event(n, f_count, target)
         marker = "  <-- best" if n == best_n else ""
         exp = expected_attempts(p)
         p99 = pity99(p)

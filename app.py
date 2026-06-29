@@ -1,13 +1,51 @@
 """Event Optimizer — Web GUI backend."""
 
 from flask import Flask, jsonify, render_template, request
+from goc_python import find_best_n, full_distribution, ladder_tiers, prob_event
 
-from core.config import GRADE_COLORS, GRADE_ORDER, load_ladder
-from core.engine import find_best_n, full_distribution, prob_event
 from core.stats import expected_attempts, pity99
 from generators import ALL as all_generators
 
 app = Flask(__name__)
+
+GRADE_ORDER = ["blue", "purple", "golden", "diamond", "legendary", "impossible"]
+GRADE_COLORS = {
+    "blue": "#58a6ff",
+    "purple": "#bc8cff",
+    "golden": "#e3b341",
+    "diamond": "#56d4dd",
+    "legendary": "#ffa657",
+    "impossible": "#f85149",
+}
+
+
+# ── helpers ──────────────────────────────────────────────────────────────────
+
+
+def _json_body():
+    """Return the request JSON, tolerating a missing/invalid body."""
+    return request.get_json(silent=True) or {}
+
+
+def _as_int(body, key, default):
+    """Coerce a body field to int, falling back to default on bad input."""
+    try:
+        return int(body.get(key, default))
+    except (TypeError, ValueError):
+        return default
+
+
+def _optimize_params(body):
+    """Extract and clamp the optimize-endpoint inputs from a request body.
+
+    Keeps the Python-level ``tiers[target_event - 1]`` indexing in bounds and
+    avoids handing out-of-range values to the Rust extension.
+    """
+    tiers = ladder_tiers()
+    f_count = max(1, _as_int(body, "formula_count", 1))
+    target_event = max(1, min(_as_int(body, "target_event", 1), len(tiers)))
+    n_max = max(1, _as_int(body, "n_max", 1))
+    return f_count, target_event, n_max
 
 
 # ── routes ───────────────────────────────────────────────────────────────────
@@ -22,31 +60,18 @@ def index():
 @app.route("/api/config")
 def api_config():
     """Return generators, formulas, events for the frontend to build the UI."""
-    events = load_ladder()
+    tiers = ladder_tiers()
 
     generators = []
     for i, mod in enumerate(all_generators):
         name = mod.__name__.split(".")[-1]
         formulas = [{"index": j, "name": f.name} for j, f in enumerate(mod.FORMULAS)]
-        generators.append(
-            {
-                "index": i,
-                "name": name,
-                "k": mod.K,
-                "formulas": formulas,
-            }
-        )
+        generators.append({"index": i, "name": name, "k": mod.K, "formulas": formulas})
 
     event_list = []
-    for i, tier in enumerate(events.tiers):
+    for i, (name, grade, raw, threshold) in enumerate(tiers):
         event_list.append(
-            {
-                "index": i,
-                "name": tier.name,
-                "probability": tier.raw,
-                "value": float(tier.threshold),
-                "grade": tier.grade,
-            }
+            {"index": i, "name": name, "probability": raw, "value": threshold, "grade": grade}
         )
 
     return jsonify(
@@ -62,29 +87,18 @@ def api_config():
 @app.route("/api/optimize", methods=["POST"])
 def api_optimize():
     """Run optimization and return curve + distribution data."""
-    body = request.get_json()
+    body = _json_body()
 
-    gen_idx = body["generator_idx"]
-    f_count = body["formula_count"]
-    target_event = body["target_event"]  # 1-indexed
-    n_max = body["n_max"]
+    f_count, target_event, n_max = _optimize_params(body)
 
-    # Load generator
-    mod = all_generators[gen_idx]
-    k_gen = mod.K
-    formulas = mod.FORMULAS[:f_count]
+    tiers = ladder_tiers()
 
-    # Load events
-    events = load_ladder()
+    best_n = find_best_n(n_max, f_count, target_event)
+    best_prob = prob_event(best_n, f_count, target_event)
 
-    # Find best n
-    best_n = find_best_n(n_max, k_gen, formulas, events, target_event)
-    best_prob = prob_event(best_n, k_gen, formulas, events, target_event)
-
-    # Build probability curve for all n
     curve = []
     for n in range(1, n_max + 1):
-        p = prob_event(n, k_gen, formulas, events, target_event)
+        p = prob_event(n, f_count, target_event)
         exp = expected_attempts(p)
         p99 = pity99(p)
         curve.append(
@@ -97,15 +111,14 @@ def api_optimize():
             }
         )
 
-    # Full distribution at best_n
-    dist_probs = full_distribution(best_n, k_gen, formulas, events)
+    dist_probs = full_distribution(best_n, f_count)
     distribution = []
-    for i, (tier, p) in enumerate(zip(events.tiers, dist_probs)):
+    for i, ((name, grade, _raw, _threshold), p) in enumerate(zip(tiers, dist_probs)):
         distribution.append(
             {
                 "index": i,
-                "name": tier.name,
-                "grade": tier.grade,
+                "name": name,
+                "grade": grade,
                 "prob": round(p, 12),
                 "is_target": (i + 1) == target_event,
             }
@@ -120,7 +133,7 @@ def api_optimize():
             "best_prob": round(best_prob, 12),
             "best_expected": round(best_exp, 1) if best_exp != float("inf") else None,
             "best_pity99": best_pity if best_pity != float("inf") else None,
-            "target_name": events.tiers[target_event - 1].name,
+            "target_name": tiers[target_event - 1][0],
             "curve": curve,
             "distribution": distribution,
         }
@@ -130,28 +143,18 @@ def api_optimize():
 @app.route("/api/distribution", methods=["POST"])
 def api_distribution():
     """Return full event distribution at a specific n."""
-    body = request.get_json()
-    gen_idx = body["generator_idx"]
-    f_count = body["formula_count"]
-    n = body["n"]
+    body = _json_body()
 
-    mod = all_generators[gen_idx]
-    k_gen = mod.K
-    formulas = mod.FORMULAS[:f_count]
+    # formula_count is clamped by the Rust extension; coerce and guard n >= 1.
+    f_count = max(1, _as_int(body, "formula_count", 1))
+    n = max(1, _as_int(body, "n", 1))
 
-    events = load_ladder()
-    dist_probs = full_distribution(n, k_gen, formulas, events)
+    tiers = ladder_tiers()
+    dist_probs = full_distribution(n, f_count)
 
     distribution = []
-    for i, (tier, p) in enumerate(zip(events.tiers, dist_probs)):
-        distribution.append(
-            {
-                "index": i,
-                "name": tier.name,
-                "grade": tier.grade,
-                "prob": round(p, 12),
-            }
-        )
+    for i, ((name, grade, _raw, _threshold), p) in enumerate(zip(tiers, dist_probs)):
+        distribution.append({"index": i, "name": name, "grade": grade, "prob": round(p, 12)})
     return jsonify({"n": n, "distribution": distribution})
 
 
