@@ -1,4 +1,7 @@
-"""Event threshold management with exact rational thresholds."""
+"""DEPRECATED: superseded by goc_python (Rust Ladder). Frozen; do not extend.
+Removed in chunk 3 once app/main are rewired. Event threshold management with
+exact rational thresholds.
+"""
 
 from dataclasses import dataclass
 from fractions import Fraction

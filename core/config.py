@@ -1,4 +1,7 @@
-"""Ladder config loader — single source of truth for tier definitions."""
+"""DEPRECATED: superseded by goc_python (Rust Ladder). Frozen; do not extend.
+Removed in chunk 3 once app/main are rewired. Ladder config loader — single
+source of truth for tier definitions.
+"""
 
 import os
 import tomllib
