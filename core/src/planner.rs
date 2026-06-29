@@ -49,7 +49,14 @@ pub fn count_in_interval<F: GameFormula>(
             }
             total
         }
-        Mode::A => BigUint::zero(),
+        Mode::A => {
+            let count = &freqs[0];
+            if count.is_zero() || !le(count, denom, p_upper) || !gt(count, denom, p_lower) {
+                BigUint::zero()
+            } else {
+                count.clone()
+            }
+        }
     }
 }
 

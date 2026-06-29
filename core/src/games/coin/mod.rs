@@ -23,6 +23,7 @@ pub enum CoinFormula {
     ExactX,
     LongestStreak,
     Alternating,
+    PrimeCount,
 }
 
 impl GameFormula for CoinFormula {
@@ -32,6 +33,7 @@ impl GameFormula for CoinFormula {
             CoinFormula::ExactX,
             CoinFormula::LongestStreak,
             CoinFormula::Alternating,
+            CoinFormula::PrimeCount,
         ]
     }
 
@@ -41,6 +43,7 @@ impl GameFormula for CoinFormula {
             CoinFormula::AtLeastX => tail_sums(Headcount::dist(n).all_freqs()),
             CoinFormula::LongestStreak => tail_sums(LongestStreak::dist(n).all_freqs()),
             CoinFormula::Alternating => alternating_freqs(n),
+            CoinFormula::PrimeCount => prime_count_freqs(n),
         }
     }
 
@@ -50,6 +53,7 @@ impl GameFormula for CoinFormula {
                 Mode::AtLeast
             }
             CoinFormula::ExactX => Mode::Exact,
+            CoinFormula::PrimeCount => Mode::A,
         }
     }
 }
@@ -67,6 +71,36 @@ fn alternating_freqs(n: usize) -> Vec<BigUint> {
         freqs.push(v << 1);
     }
     freqs
+}
+
+fn prime_count_freqs(n: usize) -> Vec<BigUint> {
+    let hc = Headcount::dist(n).all_freqs();
+    let mut total = BigUint::zero();
+    for p in primes_upto(n) {
+        total += &hc[p];
+    }
+    vec![total]
+}
+
+fn primes_upto(n: usize) -> Vec<usize> {
+    if n < 2 {
+        return Vec::new();
+    }
+    let mut sieve = vec![true; n + 1];
+    sieve[0] = false;
+    sieve[1] = false;
+    let mut i = 2;
+    while i * i <= n {
+        if sieve[i] {
+            let mut j = i * i;
+            while j <= n {
+                sieve[j] = false;
+                j += i;
+            }
+        }
+        i += 1;
+    }
+    (2..=n).filter(|&i| sieve[i]).collect()
 }
 
 #[cfg(test)]
@@ -122,6 +156,23 @@ mod tests {
             let exp = suffix(&cnt);
             let got = CoinFormula::Alternating.freqs(n);
             assert_eq!(got, exp, "Alternating n={n}");
+        }
+    }
+
+    #[test]
+    fn freqs_prime_count() {
+        for n in 1..=12 {
+            let primes = primes_upto(n);
+            let mut exp = BigUint::zero();
+            for seq in CoinGame::all_states_with(n) {
+                let h: usize = seq.iter().sum();
+                if primes.contains(&h) {
+                    exp += 1u32;
+                }
+            }
+            let got = CoinFormula::PrimeCount.freqs(n);
+            assert_eq!(got.len(), 1, "PrimeCount n={n}");
+            assert_eq!(got[0], exp, "PrimeCount n={n}");
         }
     }
 }
