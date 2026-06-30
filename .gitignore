@@ -35,3 +35,7 @@ Thumbs.db
 
 # Rust
 /target/
+
+# wasm-pack build output
+/bindings/wasm/pkg/
+/static/pkg/
