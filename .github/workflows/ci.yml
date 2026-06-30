@@ -76,4 +76,4 @@ jobs:
         run: cargo install wasm-pack --locked
 
       - name: Build wasm
-        run: wasm-pack build bindings/wasm --target web --release
+        run: wasm-pack build bindings/wasm --target web --release --out-dir ../../static/pkg

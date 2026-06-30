@@ -92,16 +92,26 @@ function buildOptimize(nMax, fCount, target) {
 
 function handle(e) {
   const { id, type } = e.data;
-  let result;
-  if (type === "config") result = buildConfig();
-  else if (type === "optimize") result = buildOptimize(e.data.n_max, e.data.formula_count, e.data.target_event);
-  else if (type === "distribution") result = buildDistribution(e.data.n, e.data.formula_count);
-  self.postMessage({ id, result });
+  try {
+    let result;
+    if (type === "config") result = buildConfig();
+    else if (type === "optimize") result = buildOptimize(e.data.n_max, e.data.formula_count, e.data.target_event);
+    else if (type === "distribution") result = buildDistribution(e.data.n, e.data.formula_count);
+    self.postMessage({ id, result });
+  } catch (err) {
+    self.postMessage({ id, error: String(err) });
+  }
 }
 
 let ready = false;
+let failed = false;
 const queue = [];
 self.onmessage = (e) => {
+  const id = e.data && e.data.id;
+  if (failed) {
+    self.postMessage({ id, error: "wasm init failed" });
+    return;
+  }
   if (!ready) {
     queue.push(e);
     return;
@@ -110,8 +120,15 @@ self.onmessage = (e) => {
 };
 
 (async () => {
-  const resp = await fetch("./pkg/goc_wasm_bg.wasm");
-  initSync(new Uint8Array(await resp.arrayBuffer()));
-  ready = true;
-  for (const e of queue) handle(e);
+  try {
+    const resp = await fetch("./pkg/goc_wasm_bg.wasm");
+    initSync(new Uint8Array(await resp.arrayBuffer()));
+    ready = true;
+    for (const e of queue) handle(e);
+  } catch (err) {
+    failed = true;
+    const msg = "wasm init failed: " + String(err);
+    for (const e of queue) self.postMessage({ id: e.data && e.data.id, error: msg });
+    queue.length = 0;
+  }
 })();
